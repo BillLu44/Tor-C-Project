@@ -4,7 +4,7 @@ int main(int argc, char *argv[]){
 
     char *host;
     int port, s;
-    struct sockadrr_in sock; 
+    struct sockaddr_in sock; 
 
     if (argc < 3){
 
@@ -24,9 +24,20 @@ int main(int argc, char *argv[]){
 
     sock.sin_family = AF_INET;
     sock.sin_port = htons(PROXYPORT);
-    sock.sin_address= inet_addr(PROXY);
 
-    connect(s, (struct sockaddr*)&sock, sizeof(sock));
+    if (inet_pton(AF_INET, PROXY, &sock.sin_addr) <= 0) {
+        perror("inet_pton");
+        close(s);
+        return -1;
+    }
+
+    if (connect(s, (struct sockaddr*) &sock, sizeof(sock))){
+        perror("connect");
+        return -1;
+    }
+
+    printf("Connected to proxy\n");
+    close(s);
 
     return 0;
 }
